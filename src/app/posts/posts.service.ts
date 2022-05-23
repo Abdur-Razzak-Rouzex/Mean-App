@@ -1,6 +1,7 @@
 import {PostModel} from './post.model';
 import {Injectable} from '@angular/core';
 import {Subject} from 'rxjs';
+import {map} from 'rxjs/operators';
 import {HttpClient} from '@angular/common/http';
 
 
@@ -17,9 +18,20 @@ export class PostsService {
   }
 
   getPosts() {
-    this.http.get<{ message: string, posts: PostModel[] }>(this.baseUrl + '/api/posts')
+    this.http
+      .get<{ message: string, posts: PostModel[] }>(this.baseUrl + '/api/posts')
+      .pipe(map((postData: any) => {
+        console.log('the post data: ', postData);
+        return postData.posts.map(post => {
+          return {
+            title: post.title,
+            content: post.content,
+            id: post._id
+          };
+        });
+      }))
       .subscribe((postData) => {
-        this.posts = postData.posts;
+        this.posts = postData;
         this.postUpdatedSubject.next([...this.posts]);
       });
   }
@@ -34,10 +46,18 @@ export class PostsService {
       content: post.content,
     };
 
-    this.http.post<{ message: string }>(this.baseUrl + '/api/posts', addedPost)
+    this.http.post<{ message: string, postId: string }>(this.baseUrl + '/api/posts/', addedPost)
       .subscribe((response) => {
-        console.log('the post response data: ', response);
+        addedPost.id = response.postId;
         this.posts.push(addedPost);
+        this.postUpdatedSubject.next([...this.posts]);
+      });
+  }
+
+  deletePost(postId: string) {
+    this.http.delete(this.baseUrl + '/api/posts/' + postId)
+      .subscribe(() => {
+        this.posts = this.posts.filter(post => post.id !== postId);
         this.postUpdatedSubject.next([...this.posts]);
       });
   }
