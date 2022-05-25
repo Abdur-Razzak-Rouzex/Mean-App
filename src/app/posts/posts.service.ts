@@ -21,7 +21,6 @@ export class PostsService {
     this.http
       .get<{ message: string, posts: PostModel[] }>(this.baseUrl + '/api/posts')
       .pipe(map((postData: any) => {
-        console.log('the post data: ', postData);
         return postData.posts.map(post => {
           return {
             title: post.title,
@@ -52,6 +51,19 @@ export class PostsService {
         this.posts.push(addedPost);
         this.postUpdatedSubject.next([...this.posts]);
       });
+  }
+
+  updatePost(id: string, title: string, content: string) {
+    const post: PostModel = {id, title, content};
+
+    this.http.put(this.baseUrl + `/api/posts/${id}`, post)
+      .subscribe((response: PostModel) => {
+        console.log('the updated data: ', response);
+      });
+  }
+
+  getPost(id: string) {
+    return this.http.get(this.baseUrl + `/api/posts/${id}`);
   }
 
   deletePost(postId: string) {

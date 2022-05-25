@@ -9,6 +9,7 @@ import {Subscription} from 'rxjs';
   styleUrls: ['./post-list.component.css']
 })
 export class PostListComponent implements OnInit, OnDestroy {
+  isLoading = false;
   constructor(public postService: PostsService) {
   }
 
@@ -16,11 +17,13 @@ export class PostListComponent implements OnInit, OnDestroy {
   private postSub: Subscription;
 
   ngOnInit() {
+    this.isLoading = true;
     this.postService.getPosts();
 
     this.postSub = this.postService.getPostUpdateListenerObservable()
       .subscribe((posts: PostModel[]) => {
         this.posts = posts;
+        this.isLoading = false;
       });
   }
 
